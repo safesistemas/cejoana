@@ -87,10 +87,14 @@ export default function AccountForm({ user }: { user: User | null }) {
       />
       <div>
         <label htmlFor="email">Email</label>
-        <input id="email" type="text" value={user?.email} disabled />
+        <input 
+          id="email" 
+          type="text" 
+          value={user?.email} 
+          disabled />
       </div>
       <div>
-        <label htmlFor="fullName">Full Name</label>
+        <label htmlFor="fullName">Nome Completo</label>
         <input
           id="fullName"
           type="text"
@@ -99,7 +103,7 @@ export default function AccountForm({ user }: { user: User | null }) {
         />
       </div>
       <div>
-        <label htmlFor="username">Username</label>
+        <label htmlFor="username">Usuário</label>
         <input
           id="username"
           type="text"
@@ -123,14 +127,14 @@ export default function AccountForm({ user }: { user: User | null }) {
           onClick={() => updateProfile({ fullname, username, website, avatar_url })}
           disabled={loading}
         >
-          {loading ? 'Loading ...' : 'Update'}
+          {loading ? 'Gravando ...' : 'Gravar'}
         </button>
       </div>
 
       <div>
         <form action="/auth/signout" method="post">
           <button className="button block" type="submit">
-            Sign out
+            Deslogar
           </button>
         </form>
       </div>
