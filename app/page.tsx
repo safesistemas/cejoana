@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <div className="row">
       <div className="col-12">
-        <h1 className="header">Centro Espírita Joana D'Arc</h1>
+      <h1 className="header">Centro Espírita Joana D&apos;Arc</h1>
         <p>
           Rondonópolis-MT
         </p>
