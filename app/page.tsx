@@ -3,15 +3,25 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="row">
-      <div className="col-12">
       <h1 className="header">Centro Espírita Joana D&apos;Arc</h1>
-        <p>
-          Rondonópolis-MT
-        </p>
+      <div>
+        <p>Rondonópolis-MT</p>
       </div>
-      <div className="col-6 form-widget">
-        <Link href="/login">Logar</Link>
+      
+      <div className="col-12">
+        <form action="/login" method="post">
+          <button type="submit">Logar</button>
+        </form>
       </div>
+
+      <nav>
+        <ul>
+          <li><Link href="/cadastro-pessoa">Pessoas</Link></li>
+          <li><Link href="/cadastro-atendente">Atendentes</Link></li>
+          <li><Link href="/tipo_atendimento">Tipo Atendimento</Link></li>
+          <li><Link href="/atendimento">Atendimentos</Link></li>
+        </ul>
+      </nav>
     </div>
   )
 }
