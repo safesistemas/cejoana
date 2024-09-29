@@ -14,24 +14,25 @@ export default async function Home() {
       
       <div className="col-12">
         {session ? (
-          <Link href="/account">
-            <button>Minha Conta</button>
-          </Link>
+          <>
+            <Link href="/account">
+              <button>Minha Conta</button>
+            </Link>
+            <nav>
+              <ul>
+                <li><Link href="/cadastro-pessoa">Pessoas</Link></li>
+                <li><Link href="/cadastro-atendente">Atendentes</Link></li>
+                <li><Link href="/tipo-atendimento">Tipo Atendimento</Link></li>
+                <li><Link href="/atendimento">Atendimentos</Link></li>
+              </ul>
+            </nav>
+          </>
         ) : (
           <Link href="/login">
             <button>Logar</button>
           </Link>
         )}
       </div>
-
-      <nav>
-        <ul>
-          <li><Link href="/cadastro-pessoa">Pessoas</Link></li>
-          <li><Link href="/cadastro-atendente">Atendentes</Link></li>
-          <li><Link href="/tipo_atendimento">Tipo Atendimento</Link></li>
-          <li><Link href="/atendimento">Atendimentos</Link></li>
-        </ul>
-      </nav>
     </div>
   )
 }
