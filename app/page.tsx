@@ -12,27 +12,33 @@ export default async function Home() {
         <p>Rondonópolis-MT</p>
       </div>
       
-      <div className="col-12">
-        {session ? (
-          <>
-            <Link href="/account">
-              <button>Minha Conta</button>
-            </Link>
-            <nav>
-              <ul>
-                <li><Link href="/cadastro-pessoa">Pessoas</Link></li>
-                <li><Link href="/cadastro-atendente">Atendentes</Link></li>
-                <li><Link href="/tipo-atendimento">Tipo Atendimento</Link></li>
-                <li><Link href="/atendimento">Atendimentos</Link></li>
-              </ul>
-            </nav>
-          </>
-        ) : (
-          <Link href="/login">
-            <button>Logar</button>
+      {session ? (
+        <div className="col-12">
+          <Link href="/account">
+            <button className="menu-button">Minha Conta</button>
           </Link>
-        )}
-      </div>
+          <nav className="button-menu">
+            <Link href="/cadastro-pessoa">
+              <button className="menu-button">Pessoas</button>
+            </Link>
+            <Link href="/cadastro-atendente">
+              <button className="menu-button">Atendentes</button>
+            </Link>
+            <Link href="/tipo-atendimento">
+              <button className="menu-button">Tipo Atendimento</button>
+            </Link>
+            <Link href="/atendimento">
+              <button className="menu-button">Atendimentos</button>
+            </Link>
+          </nav>
+        </div>
+      ) : (
+        <div className="col-12">
+          <Link href="/login">
+            <button className="menu-button">Logar</button>
+          </Link>
+        </div>
+      )}
     </div>
   )
 }
