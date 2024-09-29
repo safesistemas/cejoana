@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { type User } from '@supabase/supabase-js'
 import Avatar from './avatar'
+import Link from 'next/link'
 
 export default function AccountForm({ user }: { user: User | null }) {
   const supabase = createClient()
@@ -76,6 +77,11 @@ export default function AccountForm({ user }: { user: User | null }) {
 
   return (
     <div className="form-widget">
+            <div className="col-12">
+        <Link href="/">
+          <button className="button">Voltar</button>
+        </Link>
+      </div>
       <Avatar
         uid={user?.id ?? null}
         url={avatar_url}

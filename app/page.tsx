@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { createClient } from '@/utils/supabase/server'
 
-export default function Home() {
+export default async function Home() {
+  const supabase = createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+
   return (
     <div className="row">
       <h1 className="header">Centro Espírita Joana D&apos;Arc</h1>
@@ -9,9 +13,15 @@ export default function Home() {
       </div>
       
       <div className="col-12">
-        <form action="/login" method="post">
-          <button type="submit">Logar</button>
-        </form>
+        {session ? (
+          <Link href="/account">
+            <button>Minha Conta</button>
+          </Link>
+        ) : (
+          <Link href="/login">
+            <button>Logar</button>
+          </Link>
+        )}
       </div>
 
       <nav>
