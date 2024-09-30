@@ -1,3 +1,5 @@
+// @/components/Atendentes.tsx
+
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -143,26 +145,29 @@ export default function Atendentes() {
           </Link>
         <h2 className="text-lg font-semibold text-gray-700 capitalize dark:text-white">Atendentes</h2>
         <div className="flex space-x-2">
-          <button
+        <button
             onClick={() => { setShowForm(true); setEditingId(null); setNome(''); setTelefone(''); }}
-            className="p-2 text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-            title="Incluir"
-          >
+            className="flex items-center justify-end p-2 text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
+            title="Incluir" 
+        >
             <PlusCircle size={24} />
-          </button>
+            <p className="ml-2 hidden md:block">Incluir</p>
+        </button>
           <button
             onClick={handleEdit}
-            className="p-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex items-center justify-end p-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
             title="Editar"
           >
             <Edit2 size={24} />
+            <p className="ml-2 hidden md:block">Editar</p>
           </button>
           <button
             onClick={handleDelete}
-            className="p-2 text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="flex items-center justify-end p-2 text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
             title="Excluir"
           >
             <Trash2 size={24} />
+            <p className="ml-2 hidden md:block">Excluir</p>
           </button>
         </div>
       </div>
@@ -196,7 +201,7 @@ export default function Atendentes() {
             <button
               type="submit"
               disabled={loading}
-              className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-gray-700 rounded-md hover:bg-gray-600 focus:outline-none focus:bg-gray-600"
+              className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               {editingId ? 'Gravar Alterações' : 'Incluir'}
             </button>
@@ -204,8 +209,8 @@ export default function Atendentes() {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-8 py-2.5 leading-5 text-gray-700 transition-colors duration-300 transform bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:bg-gray-300"
-              >
+                className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
                 Cancelar Alterações
               </button>
             )}
@@ -220,24 +225,24 @@ export default function Atendentes() {
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
-                <th scope="col" className="px-6 py-3"></th>
-                <th scope="col" className="px-6 py-3">Nome</th>
-                <th scope="col" className="px-6 py-3">Telefone</th>
+                <th scope="col" className="px-0 py-3"></th>
+                <th scope="col" className="px-1 py-3">Nome</th>
+                <th scope="col" className="px-1 py-3">Telefone</th>
               </tr>
             </thead>
             <tbody>
               {atendentes.map((atendente) => (
                 <tr key={atendente.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                  <td className="px-6 py-4">
+                  <td className="px-0 py-4 text-center">
                     <input
                       type="checkbox"
                       checked={selectedIds.includes(atendente.id)}
                       onChange={() => handleCheckboxChange(atendente.id)}
-                      className="form-checkbox h-5 w-5 text-blue-600"
+                      className="form-checkbox h-5 w-5 text-blue-600 rounded "
                     />
                   </td>
-                  <td className="px-6 py-4">{atendente.nome}</td>
-                  <td className="px-6 py-4">{atendente.telefone}</td>
+                  <td className="px-1 py-4">{atendente.nome}</td>
+                  <td className="px-1 py-4">{atendente.telefone}</td>
                 </tr>
               ))}
             </tbody>

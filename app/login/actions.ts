@@ -1,3 +1,5 @@
+// @/app/login/actions.ts
+
 'use server'
 
 import { revalidatePath } from 'next/cache'
@@ -15,14 +17,31 @@ export async function login(formData: FormData) {
     password: formData.get('password') as string,
   }
 
-  const { error } = await supabase.auth.signInWithPassword(data)
+  const { error: signInError, data: signInData } = await supabase.auth.signInWithPassword(data)
 
-  if (error) {
+  if (signInError) {
     redirect('/error')
   }
 
+  // Check if the user is active
+  const { data: profileData, error: profileError } = await supabase
+    .from('profiles')
+    .select('ativo')
+    .eq('id', signInData.user.id)
+    .single()
+
+  if (profileError || !profileData) {
+    redirect('/error')
+  }
+
+  if (!profileData.ativo) {
+    // User is not active
+    await supabase.auth.signOut()
+    redirect('/inactive')
+  }
+
   revalidatePath('/', 'layout')
-  redirect('/account')
+  redirect('/')
 }
 
 export async function signup(formData: FormData) {

@@ -29,9 +29,18 @@ export default async function Home() {
           <Link href="/atendimento" className="w-full">
             <button className="button dark:bg-gray-700 dark:text-white">Atendimentos</button>
           </Link>
+          <Link href="/cadastro-usuario" className="w-full">
+            <button className="button dark:bg-gray-700 dark:text-white">Usuários</button>
+          </Link>
           <Link href="/account" className="w-full">
             <button className="button dark:bg-gray-700 dark:text-white">Minha Conta</button>
           </Link>
+          <form action="/auth/signout" method="post">
+              <button type="submit" className="px-5 py-2 font-semibold leading-6 text-white w-full block text-center bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                Sair
+              </button>
+            </form>
+
         </div>
       ) : (
         <div className="text-center py-10">
