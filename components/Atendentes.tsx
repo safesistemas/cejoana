@@ -136,6 +136,11 @@ export default function Atendentes() {
     <section className="max-w-4xl p-6 mx-auto bg-white rounded-md shadow-md dark:bg-gray-800">
       <Toaster position="top-right" />
       <div className="flex justify-between items-center mb-6">
+      <Link href="/">
+            <button className="px-4 py-2 text-sm text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+              Voltar
+            </button>
+          </Link>
         <h2 className="text-lg font-semibold text-gray-700 capitalize dark:text-white">Atendentes</h2>
         <div className="flex space-x-2">
           <button
@@ -159,11 +164,6 @@ export default function Atendentes() {
           >
             <Trash2 size={24} />
           </button>
-          <Link href="/">
-            <button className="px-4 py-2 text-sm text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
-              Voltar
-            </button>
-          </Link>
         </div>
       </div>
 
