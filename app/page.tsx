@@ -11,7 +11,7 @@ export default async function Home() {
   return (
     <div className="container mx-auto px-4">
       <div className="flex justify-between items-center py-4">
-        <h1 className="text-3xl font-bold text-gray-700 capitalize dark:text-white">Centro Espírita Joana D&apos;Arc</h1>
+        <h1 className="text-3xl font-bold text-gray-700 capitalize dark:text-white">CE Joana D&apos;Arc</h1>
         <ThemeToggle />
       </div>
 
