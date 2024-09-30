@@ -19,7 +19,6 @@ export default async function CadastroTipoAtendimento() {
 
   return (
     <div>
-      <h1>Cadastro de Tipo de Atendimento</h1>
       <TipoAtendimento />
     </div>
   )

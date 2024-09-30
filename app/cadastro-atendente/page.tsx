@@ -20,7 +20,6 @@ export default async function CadastroAtendente() {
 
   return (
     <div>
-      <h1>Cadastro de Atendentes</h1>
       <Atendentes />
     </div>
   )

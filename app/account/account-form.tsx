@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { type User } from '@supabase/supabase-js'
-import Avatar from './avatar'
+// import Avatar from './avatar'
 import Link from 'next/link'
 
 export default function AccountForm({ user }: { user: User | null }) {
@@ -76,13 +76,13 @@ export default function AccountForm({ user }: { user: User | null }) {
   }
 
   return (
-    <div className="form-widget">
-            <div className="col-12">
+    <div >
+            <div >
         <Link href="/">
-          <button className="button">Voltar</button>
+          <button >Voltar</button>
         </Link>
       </div>
-      <Avatar
+      {/* <Avatar
         uid={user?.id ?? null}
         url={avatar_url}
         size={150}
@@ -90,7 +90,7 @@ export default function AccountForm({ user }: { user: User | null }) {
           setAvatarUrl(url)
           updateProfile({ fullname, username, website, avatar_url: url })
         }}
-      />
+      /> */}
       <div>
         <label htmlFor="email">Email</label>
         <input 
@@ -117,7 +117,7 @@ export default function AccountForm({ user }: { user: User | null }) {
           onChange={(e) => setUsername(e.target.value)}
         />
       </div>
-      <div>
+      {/* <div>
         <label htmlFor="website">Website</label>
         <input
           id="website"
@@ -125,11 +125,10 @@ export default function AccountForm({ user }: { user: User | null }) {
           value={website || ''}
           onChange={(e) => setWebsite(e.target.value)}
         />
-      </div>
+      </div> */}
 
       <div>
         <button
-          className="button primary block"
           onClick={() => updateProfile({ fullname, username, website, avatar_url })}
           disabled={loading}
         >
@@ -139,7 +138,7 @@ export default function AccountForm({ user }: { user: User | null }) {
 
       <div>
         <form action="/auth/signout" method="post">
-          <button className="button block" type="submit">
+          <button type="submit">
             Deslogar
           </button>
         </form>

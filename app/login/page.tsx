@@ -4,9 +4,9 @@ import Link from 'next/link'
 export default function LoginPage() {
   return (
     <form>
-      <div className="col-12">
+      <div>
         <Link href="/">
-          <button className="button">Voltar</button>
+          <button>Voltar</button>
         </Link>
       </div>      
       <label htmlFor="email">Email:</label>

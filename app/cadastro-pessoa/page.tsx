@@ -19,7 +19,6 @@ export default async function CadastroPessoa() {
 
   return (
     <div>
-      <h1>Cadastro de Pessoas</h1>
       <Pessoas />
     </div>
   )
