@@ -19,7 +19,6 @@ export default async function CadastroAtendimento() {
 
   return (
     <div>
-      <h1>Cadastro de Atendimentos</h1>
       <Atendimentos />
     </div>
   )

@@ -1,144 +1,217 @@
 'use client';
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/utils/supabase/client'
-import Link from 'next/link'
+import React, { useState, useEffect, useCallback } from 'react';
+import { createClient } from '@/utils/supabase/client';
+import Link from 'next/link';
+import { PlusCircle, Edit2, Trash2 } from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
 
 interface Atendente {
-  id: number
-  nome: string
-  telefone: string | null
+  id: number;
+  nome: string;
+  telefone: string | null;
 }
 
 export default function Atendentes() {
-  const [atendentes, setAtendentes] = useState<Atendente[]>([])
-  const [loading, setLoading] = useState(true)
-  const [editingId, setEditingId] = useState<number | null>(null)
-  const [nome, setNome] = useState('')
-  const [telefone, setTelefone] = useState('')
-  const supabase = createClient()
+  const [atendentes, setAtendentes] = useState<Atendente[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [nome, setNome] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [originalAtendente, setOriginalAtendente] = useState<Atendente | null>(null);
+  const supabase = createClient();
 
-  useEffect(() => {
-    fetchAtendentes()
-  }, [])
-
-  async function fetchAtendentes() {
+  // Use useCallback to memorize the fetchAtendentes function
+  const fetchAtendentes = useCallback(async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       const { data, error } = await supabase
         .from('atendentes')
         .select('*')
-        .order('nome')
+        .order('nome');
 
-      if (error) throw error
-      setAtendentes(data || [])
+      if (error) throw error;
+      setAtendentes(data || []);
     } catch (error) {
-      console.error('Erro ao buscar atendentes:', error)
-      alert('Erro ao carregar atendentes!')
+      console.error('Erro ao buscar atendentes:', error);
+      toast.error('Erro ao carregar atendentes!');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchAtendentes();
+  }, [fetchAtendentes]);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      setLoading(true)
+      setLoading(true);
       if (editingId) {
         const { error } = await supabase
           .from('atendentes')
           .update({ nome, telefone })
-          .eq('id', editingId)
-        if (error) throw error
-        alert('Atendente atualizado com sucesso!')
+          .eq('id', editingId);
+        if (error) throw error;
+        toast.success('Atendente atualizado com sucesso!');
       } else {
         const { error } = await supabase
           .from('atendentes')
-          .insert({ nome, telefone })
-        if (error) throw error
-        alert('Atendente adicionado com sucesso!')
+          .insert({ nome, telefone });
+        if (error) throw error;
+        toast.success('Atendente adicionado com sucesso!');
       }
-      setEditingId(null)
-      setNome('')
-      setTelefone('')
-      fetchAtendentes()
+      resetForm();
+      fetchAtendentes();
     } catch (error) {
-      console.error('Erro ao salvar atendente:', error)
-      alert('Erro ao salvar atendente!')
+      console.error('Erro ao salvar atendente:', error);
+      toast.error('Erro ao salvar atendente!');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
-  async function handleDelete(id: number) {
-    if (confirm('Tem certeza que deseja excluir este atendente?')) {
+  async function handleDelete() {
+    if (selectedIds.length === 0) {
+      toast.error('Selecione pelo menos um atendente para excluir.');
+      return;
+    }
+    if (confirm(`Tem certeza que deseja excluir ${selectedIds.length} atendente(s)?`)) {
       try {
-        setLoading(true)
+        setLoading(true);
         const { error } = await supabase
           .from('atendentes')
           .delete()
-          .eq('id', id)
-        if (error) throw error
-        alert('Atendente excluído com sucesso!')
-        fetchAtendentes()
+          .in('id', selectedIds);
+        if (error) throw error;
+        toast.success('Atendente(s) excluído(s) com sucesso!');
+        setSelectedIds([]);
+        fetchAtendentes();
       } catch (error) {
-        console.error('Erro ao excluir atendente:', error)
-        alert('Erro ao excluir atendente!')
+        console.error('Erro ao excluir atendente(s):', error);
+        toast.error('Erro ao excluir atendente(s)!');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
   }
 
-  function handleEdit(atendente: Atendente) {
-    setEditingId(atendente.id)
-    setNome(atendente.nome)
-    setTelefone(atendente.telefone || '')
+  function handleEdit() {
+    if (selectedIds.length !== 1) {
+      toast.error('Selecione exatamente um atendente para editar.');
+      return;
+    }
+    const atendente = atendentes.find(a => a.id === selectedIds[0]);
+    if (atendente) {
+      setEditingId(atendente.id);
+      setNome(atendente.nome);
+      setTelefone(atendente.telefone || '');
+      setOriginalAtendente(atendente);
+      setShowForm(true);
+    }
+  }
+
+  function handleCancel() {
+    resetForm();
+  }
+
+  function resetForm() {
+    setEditingId(null);
+    setNome('');
+    setTelefone('');
+    setShowForm(false);
+    setOriginalAtendente(null);
+  }
+
+  function handleCheckboxChange(id: number) {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
   }
 
   return (
     <section className="max-w-4xl p-6 mx-auto bg-white rounded-md shadow-md dark:bg-gray-800">
-      <h2 className="text-xl font-semibold text-gray-700 capitalize dark:text-white">Atendentes</h2>
-      <Link href="/">
-        <button className="mt-4 px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
-          Voltar
-        </button>
-      </Link>
-
-      <form onSubmit={handleSubmit} className="mt-6">
-        <div className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
-          <div>
-            <label className="text-gray-700 dark:text-gray-200" htmlFor="nome">Nome</label>
-            <input
-              id="nome"
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              required
-              className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
-            />
-          </div>
-          <div>
-            <label className="text-gray-700 dark:text-gray-200" htmlFor="telefone">Telefone</label>
-            <input
-              id="telefone"
-              type="tel"
-              value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
-              className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
-            />
-          </div>
-        </div>
-        <div className="flex justify-end mt-6">
+      <Toaster position="top-right" />
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-semibold text-gray-700 capitalize dark:text-white">Atendentes</h2>
+        <div className="flex space-x-2">
           <button
-            type="submit"
-            disabled={loading}
-            className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-gray-700 rounded-md hover:bg-gray-600 focus:outline-none focus:bg-gray-600"
+            onClick={() => { setShowForm(true); setEditingId(null); setNome(''); setTelefone(''); }}
+            className="p-2 text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+            title="Incluir"
           >
-            {editingId ? 'Atualizar' : 'Adicionar'} Atendente
+            <PlusCircle size={24} />
           </button>
+          <button
+            onClick={handleEdit}
+            className="p-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            title="Editar"
+          >
+            <Edit2 size={24} />
+          </button>
+          <button
+            onClick={handleDelete}
+            className="p-2 text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            title="Excluir"
+          >
+            <Trash2 size={24} />
+          </button>
+          <Link href="/">
+            <button className="px-4 py-2 text-sm text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+              Voltar
+            </button>
+          </Link>
         </div>
-      </form>
+      </div>
+
+      {showForm && (
+        <form onSubmit={handleSubmit} className="mt-6">
+          <div className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
+            <div>
+              <label className="text-gray-700 dark:text-gray-200" htmlFor="nome">Nome</label>
+              <input
+                id="nome"
+                type="text"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                required
+                className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
+              />
+            </div>
+            <div>
+              <label className="text-gray-700 dark:text-gray-200" htmlFor="telefone">Telefone</label>
+              <input
+                id="telefone"
+                type="tel"
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+                className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end mt-6 space-x-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-gray-700 rounded-md hover:bg-gray-600 focus:outline-none focus:bg-gray-600"
+            >
+              {editingId ? 'Gravar Alterações' : 'Incluir'}
+            </button>
+            {editingId && (
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-8 py-2.5 leading-5 text-gray-700 transition-colors duration-300 transform bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:bg-gray-300"
+              >
+                Cancelar Alterações
+              </button>
+            )}
+          </div>
+        </form>
+      )}
 
       {loading ? (
         <p className="mt-6 text-gray-600 dark:text-gray-300">Carregando...</p>
@@ -147,30 +220,24 @@ export default function Atendentes() {
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
+                <th scope="col" className="px-6 py-3"></th>
                 <th scope="col" className="px-6 py-3">Nome</th>
                 <th scope="col" className="px-6 py-3">Telefone</th>
-                <th scope="col" className="px-6 py-3">Ações</th>
               </tr>
             </thead>
             <tbody>
               {atendentes.map((atendente) => (
                 <tr key={atendente.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                  <td className="px-6 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(atendente.id)}
+                      onChange={() => handleCheckboxChange(atendente.id)}
+                      className="form-checkbox h-5 w-5 text-blue-600"
+                    />
+                  </td>
                   <td className="px-6 py-4">{atendente.nome}</td>
                   <td className="px-6 py-4">{atendente.telefone}</td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleEdit(atendente)}
-                      className="font-medium text-blue-600 dark:text-blue-500 hover:underline mr-2"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleDelete(atendente.id)}
-                      className="font-medium text-red-600 dark:text-red-500 hover:underline"
-                    >
-                      Excluir
-                    </button>
-                  </td>
                 </tr>
               ))}
             </tbody>
@@ -178,5 +245,5 @@ export default function Atendentes() {
         </div>
       )}
     </section>
-  )
+  );
 }

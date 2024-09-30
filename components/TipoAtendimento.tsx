@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Link from 'next/link'
 
@@ -16,11 +16,7 @@ export default function TipoAtendimento() {
   const [descricaoAtendimento, setDescricaoAtendimento] = useState('')
   const supabase = createClient()
 
-  useEffect(() => {
-    fetchTiposAtendimento()
-  }, [])
-
-  async function fetchTiposAtendimento() {
+  const fetchTiposAtendimento = useCallback(async () => {    
     try {
       setLoading(true)
       const { data, error } = await supabase
@@ -36,8 +32,13 @@ export default function TipoAtendimento() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [supabase]);
 
+  useEffect(() => {
+    fetchTiposAtendimento()
+  }, [fetchTiposAtendimento])
+
+  
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     try {

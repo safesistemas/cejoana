@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Link from 'next/link'
 
@@ -36,12 +36,7 @@ export default function Pessoas() {
   })
   const supabase = createClient()
 
-  useEffect(() => {
-    fetchPessoas()
-    fetchCidades()
-  }, [])
-
-  async function fetchPessoas() {
+  const fetchPessoas = useCallback(async () => {    
     try {
       setLoading(true)
       const { data, error } = await supabase
@@ -57,9 +52,9 @@ export default function Pessoas() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [supabase]);
 
-  async function fetchCidades() {
+  const fetchCidades = useCallback(async () => {    
     try {
       const { data, error } = await supabase
         .from('cidades')
@@ -72,7 +67,12 @@ export default function Pessoas() {
       console.error('Erro ao buscar cidades:', error)
       alert('Erro ao carregar cidades!')
     }
-  }
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchPessoas()
+    fetchCidades()
+  }, [fetchPessoas, fetchCidades])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -153,14 +153,15 @@ export default function Pessoas() {
   }
 
   return (
-    <section className="max-w-4xl p-6 mx-auto bg-white rounded-md shadow-md dark:bg-gray-800">
-      <h2 className="text-lg font-semibold text-gray-700 capitalize dark:text-white">Pessoas</h2>
-      <Link href="/">
-        <button className="mt-4 px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
-          Voltar
-        </button>
-      </Link>
-
+    <section className="p-6 mx-auto bg-white rounded-md shadow-md dark:bg-gray-800">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-semibold text-gray-700 capitalize dark:text-white">Pessoas</h2>
+        <Link href="/">
+          <button className="px-4 py-2 text-sm text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+            Voltar
+          </button>
+        </Link>
+      </div>      
       <form onSubmit={handleSubmit} className="mt-6">
         <div className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
           <div>
@@ -290,13 +291,16 @@ export default function Pessoas() {
                   <td className="px-6 py-4">
                     <button
                       onClick={() => handleEdit(pessoa)}
-                      className="font-medium text-blue-600 dark:text-blue-500 hover:underline mr-2"
+                      // className="font-medium text-blue-600 dark:text-blue-500 hover:underline mr-2"
+                      className="w-full px-6 py-2 leading-5 text-white transition-colors duration-200 transform bg-blue-700 rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+
                     >
                       Editar
                     </button>
                     <button
                       onClick={() => handleDelete(pessoa.id)}
-                      className="font-medium text-red-600 dark:text-red-500 hover:underline"
+                      className="w-full mx-3 px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-red-600 border border-transparent rounded-lg active:bg-red-600 hover:bg-red-700 focus:outline-none focus:shadow-outline-red"
+                      // className="font-medium text-red-600 dark:text-red-500 hover:underline"
                     >
                       Excluir
                     </button>
