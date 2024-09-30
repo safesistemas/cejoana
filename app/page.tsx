@@ -7,7 +7,7 @@ export default async function Home() {
 
   return (
     <div className="container mx-auto px-4">
-      <h1 className="text-3xl font-bold py-2 text-center text-white">Centro Espírita Joana D'Arc</h1>
+      <h1 className="text-3xl font-bold py-2 text-center text-white">Centro Espírita Joana D&apos;Arc</h1>
 
       {session ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-10">
