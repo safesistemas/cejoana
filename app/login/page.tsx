@@ -1,14 +1,28 @@
 // @/app/login/page.tsx
 
+'use client';
+
 import { login, signup } from './actions'
 import Link from 'next/link'
+import { useTransition, useState } from 'react'
 
 export default function LoginPage() {
+  const [isPending, startTransition] = useTransition()
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleAction = (action: typeof login | typeof signup) => {
+    setIsLoading(true)
+    startTransition(() => {
+      action(new FormData(document.querySelector('form') as HTMLFormElement))
+        .finally(() => setIsLoading(false))
+    })
+  }
+
   return (
     <section className="max-w-4xl p-6 mx-auto bg-white rounded-md shadow-md dark:bg-gray-800">
       <h2 className="text-lg font-semibold text-gray-700 capitalize dark:text-white">Entrar</h2>
       <form>
-        <div className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
           <div>
             <label className="text-gray-700 dark:text-gray-200" htmlFor="email">Email</label>
             <input
@@ -38,20 +52,31 @@ export default function LoginPage() {
           </Link>
           <div>
             <button
-              formAction={login}
-              className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-blue-700 rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600 mr-2"
+              type="button"
+              onClick={() => handleAction(login)}
+              disabled={isLoading}
+              className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-blue-700 rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600 mr-2 disabled:opacity-50"
             >
-              Logar
+              {isLoading ? 'Carregando...' : 'Logar'}
             </button>
             <button
-              formAction={signup}
-              className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-green-700 rounded-md hover:bg-green-600 focus:outline-none focus:bg-green-600"
+              type="button"
+              onClick={() => handleAction(signup)}
+              disabled={isLoading}
+              className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-green-700 rounded-md hover:bg-green-600 focus:outline-none focus:bg-green-600 disabled:opacity-50"
             >
-              Criar Conta
+              {isLoading ? 'Carregando...' : 'Criar Conta'}
             </button>
           </div>
         </div>
       </form>
+      {isPending && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-4 rounded-md">
+            <p>Aguarde...</p>
+          </div>
+        </div>
+      )}
     </section>
   )
 }
