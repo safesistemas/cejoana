@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { PlusCircle, Edit2, Trash2 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
+
 interface Atendimento {
   id: number;
   pessoa_id: number;
@@ -51,6 +52,16 @@ export default function Atendimentos() {
     observacao: ''
   });
   const supabase = createClient();
+
+  function formatDateToLocal(dateString: string) {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  }
 
   const fetchAtendimentos = useCallback(async () => {
     try {
@@ -99,17 +110,21 @@ export default function Atendimentos() {
     e.preventDefault();
     try {
       setLoading(true);
+      const dataToSend = {
+        ...formData,
+        data_atendimento: new Date(formData.data_atendimento).toISOString()
+      };
       if (editingId) {
         const { error } = await supabase
           .from('atendimentos')
-          .update(formData)
+          .update(dataToSend)
           .eq('id', editingId);
         if (error) throw error;
         toast.success('Atendimento atualizado com sucesso!');
       } else {
         const { error } = await supabase
           .from('atendimentos')
-          .insert(formData);
+          .insert(dataToSend);
         if (error) throw error;
         toast.success('Atendimento adicionado com sucesso!');
       }
@@ -199,6 +214,12 @@ export default function Atendimentos() {
     );
   }
 
+  function handleIncluir() {
+    setEditingId(null);
+    resetForm();
+    setShowForm(true);
+  }
+
   return (
     <section className="max-w-4xl p-6 mx-auto bg-white rounded-md shadow-md dark:bg-gray-800">
       <Toaster position="top-right" />
@@ -211,7 +232,7 @@ export default function Atendimentos() {
         <h2 className="text-lg font-semibold text-gray-700 capitalize dark:text-white">Atendimentos</h2>
         <div className="flex space-x-2">
           <button
-            onClick={() => { setShowForm(true); setEditingId(null); resetForm(); }}
+            onClick={handleIncluir}
             className="flex items-center justify-end p-2 text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
             title="Incluir"
           >
@@ -311,7 +332,7 @@ export default function Atendimentos() {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-gray-700 dark:text-gray-200" htmlFor="observacao">Observação</label>
+            <label className="text-gray-700 dark:text-gray-200" htmlFor="observacao">Observação</label>
               <textarea
                 id="observacao"
                 name="observacao"
@@ -329,15 +350,13 @@ export default function Atendimentos() {
             >
               {editingId ? 'Gravar Alterações' : 'Incluir'}
             </button>
-            {editingId && (
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-              >
-                Cancelar Alterações
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              Cancelar
+            </button>
           </div>
         </form>
       )}
@@ -371,7 +390,7 @@ export default function Atendimentos() {
                   </td>
                   <td className="px-1 py-4">{pessoas.find(p => p.id === atendimento.pessoa_id)?.nome}</td>
                   <td className="px-1 py-4">{atendentes.find(a => a.id === atendimento.atendente_id)?.nome}</td>
-                  <td className="px-1 py-4">{new Date(atendimento.data_atendimento).toLocaleString()}</td>
+                  <td className="px-1 py-4">{formatDateToLocal(atendimento.data_atendimento)}</td>                  
                   <td className="px-1 py-4">{tiposAtendimento.find(t => t.id === atendimento.tipo_atendimento_id)?.descricao_atendimento}</td>
                   <td className="px-1 py-4">{atendimento.orientacao}</td>
                   <td className="px-1 py-4">{atendimento.observacao}</td>
@@ -383,4 +402,4 @@ export default function Atendimentos() {
       )}
     </section>
   );
-}
+}              

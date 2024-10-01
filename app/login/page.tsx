@@ -20,7 +20,7 @@ export default function LoginPage() {
 
   return (
     <section className="max-w-4xl p-6 mx-auto bg-white rounded-md shadow-md dark:bg-gray-800">
-      <h2 className="text-lg font-semibold text-gray-700 capitalize dark:text-white">Entrar</h2>
+      <div className="text-lg font-semibold text-gray-700 dark:text-white">Entre com usuário ou Crie uma nova conta</div>
       <form>
       <div className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
           <div>

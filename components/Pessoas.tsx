@@ -80,21 +80,30 @@ export default function Pessoas() {
     fetchCidades();
   }, [fetchPessoas, fetchCidades]);
 
+  // Adicionado para debug
+  useEffect(() => {
+    console.log('showForm changed:', showForm);
+  }, [showForm]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
       setLoading(true);
+      const dataToSubmit = {
+        ...formData,
+        nome: formData.nome.toUpperCase()
+      };
       if (editingId) {
         const { error } = await supabase
           .from('pessoas')
-          .update(formData)
+          .update(dataToSubmit)
           .eq('id', editingId);
         if (error) throw error;
         toast.success('Pessoa atualizada com sucesso!');
       } else {
         const { error } = await supabase
           .from('pessoas')
-          .insert(formData);
+          .insert(dataToSubmit);
         if (error) throw error;
         toast.success('Pessoa adicionada com sucesso!');
       }
@@ -156,10 +165,20 @@ export default function Pessoas() {
 
   function handleCancel() {
     resetForm();
+    setShowForm(false); // Esconde o formulário
+    setEditingId(null); // Limpa o ID de edição
+    toast(editingId ? 'Alterações canceladas' : 'Inclusão cancelada', {
+      icon: '🔔',
+      style: {
+        borderRadius: '10px',
+        background: '#3498db',
+        color: '#fff',
+      },
+    });
   }
 
+  // Modificada para não esconder o formulário
   function resetForm() {
-    setEditingId(null);
     setFormData({
       nome: '',
       telefone: '',
@@ -169,19 +188,23 @@ export default function Pessoas() {
       bairro: '',
       cidade_id: null
     });
-    setShowForm(false);
+    // Não alteramos showForm aqui
   }
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'idade' || name === 'cidade_id' ? (value ? Number(value) : null) : value
+      [name]: name === 'nome'
+        ? value.toUpperCase()
+        : name === 'idade' || name === 'cidade_id'
+          ? (value ? Number(value) : null)
+          : value
     }));
   }
 
   function handleCheckboxChange(id: number) {
-    setSelectedIds(prev => 
+    setSelectedIds(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   }
@@ -195,7 +218,7 @@ export default function Pessoas() {
             Voltar
           </button>
         </Link>
-        <h2 className="text-lg font-semibold text-gray-700 capitalize dark:text-white">Pessoas</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mx-auto pl-10 pr-10 text-center">Pessoas</h2>
         <div className="flex space-x-2">
           <button
             onClick={() => { setShowForm(true); setEditingId(null); resetForm(); }}
@@ -321,15 +344,13 @@ export default function Pessoas() {
             >
               {editingId ? 'Gravar Alterações' : 'Incluir'}
             </button>
-            {editingId && (
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-              >
-                Cancelar Alterações
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              {editingId ? 'Cancelar Alterações' : 'Cancelar Inclusão'}
+            </button>
           </div>
         </form>
       )}
@@ -362,7 +383,7 @@ export default function Pessoas() {
                       className="form-checkbox h-5 w-5 text-blue-600 rounded"
                     />
                   </td>
-                  <td className="px-1 py-4">{pessoa.nome}</td>
+                  <td className="px-1 py-4">{pessoa.nome.toUpperCase()}</td>
                   <td className="px-1 py-4">{pessoa.telefone}</td>
                   <td className="px-1 py-4">{pessoa.idade}</td>
                   <td className="px-1 py-4">{pessoa.sexo}</td>
@@ -377,4 +398,4 @@ export default function Pessoas() {
       )}
     </section>
   );
-}
+}              

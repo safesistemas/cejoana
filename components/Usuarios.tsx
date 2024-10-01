@@ -100,20 +100,20 @@ export default function Usuarios() {
   return (
     <section className="max-w-4xl p-6 mx-auto bg-white rounded-md shadow-md dark:bg-gray-800">
       <Toaster position="top-right" />
-      <div className="flex justify-between items-center mb-6 flex-start">
+      <div className="flex justify-center items-center relative mb-6">
         <Link href="/">
-            <button className="px-4 py-2 text-sm text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+          <button className="absolute top-0 left-0 px-4 py-2 text-sm text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
             Voltar
-            </button>
+          </button>
         </Link>
-        <h2 className="text-lg font-semibold text-gray-700 capitalize dark:text-white">Usuários</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mx-auto pl-10 pr-10 text-center">Usuários</h2>
       </div>
 
       {editingId && (
         <form onSubmit={handleSubmit} className="mt-6">
           <div className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
             <div>
-              <label className="text-gray-700 dark:text-gray-200" htmlFor="username">Nome de Usuário</label>
+              <label className="text-gray-700 dark:text-gray-200" htmlFor="username">Nome do Usuário</label>
               <input
                 id="username"
                 type="text"
@@ -162,7 +162,7 @@ export default function Usuarios() {
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
-                <th scope="col" className="px-1 py-3">Nome de Usuário</th>
+                <th scope="col" className="px-1 py-3">Nome do Usuário</th>
                 <th scope="col" className="px-1 py-3">Ativo</th>
                 <th scope="col" className="px-1 py-3">Ações</th>
               </tr>

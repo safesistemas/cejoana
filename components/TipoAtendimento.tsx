@@ -135,7 +135,7 @@ export default function TipoAtendimento() {
             Voltar
           </button>
         </Link>
-        <h2 className="text-lg font-semibold text-gray-700 capitalize dark:text-white">Tipos de Atendimento</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mx-auto pl-10 pr-10 text-center">Tipos de Atendimento</h2>
         <div className="flex space-x-2">
           <button
             onClick={() => { setShowForm(true); setEditingId(null); setDescricaoAtendimento(''); }}

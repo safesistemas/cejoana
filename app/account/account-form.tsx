@@ -73,13 +73,15 @@ export default function AccountForm({ user }: { user: User | null }) {
 
   return (
     <div className="max-w-4xl p-6 mx-auto bg-white rounded-md shadow-md dark:bg-gray-800">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-semibold text-gray-700 capitalize dark:text-white">Informações da Conta</h2>
+      <div className="flex justify-center items-center relative mb-6">
         <Link href="/">
-          <button className="px-4 py-2 text-sm text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+          <button className="absolute top-0 left-0 px-4 py-2 text-sm text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
             Voltar
           </button>
         </Link>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mx-auto pl-10 pr-10 text-center">
+          Informações da Conta
+        </h2>
       </div>
 
       <form className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
@@ -123,11 +125,6 @@ export default function AccountForm({ user }: { user: User | null }) {
         >
           {loading ? 'Gravando ...' : 'Gravar'}
         </button>
-        <form action="/auth/signout" method="post">
-          <button type="submit" className="mx-3 px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-red-600 border border-transparent rounded-lg active:bg-red-600 hover:bg-red-700 focus:outline-none focus:shadow-outline-red">
-            Deslogar
-          </button>
-        </form>
         </div>
     </div>
   )
