@@ -8,6 +8,14 @@ import Link from 'next/link';
 import { PlusCircle, Edit2, Trash2, Search, X } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
+// Add this function at the top of your file, outside of the component
+function normalizeString(str: string): string {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
 interface Pessoa {
   id: number;
   nome: string;
@@ -85,8 +93,9 @@ export default function Pessoas() {
   }, [fetchPessoas, fetchCidades]);
 
   useEffect(() => {
+    const normalizedSearchTerm = normalizeString(searchTerm);
     const filtered = pessoas.filter(pessoa =>
-      pessoa.nome.toLowerCase().includes(searchTerm.toLowerCase())
+      normalizeString(pessoa.nome).includes(normalizedSearchTerm)
     );
     setFilteredPessoas(filtered);
   }, [searchTerm, pessoas]);
@@ -114,6 +123,7 @@ export default function Pessoas() {
         toast.success('Pessoa adicionada com sucesso!');
       }
       resetForm();
+      setShowForm(false);
       fetchPessoas();
     } catch (error) {
       console.error('Erro ao salvar pessoa:', error);
@@ -286,12 +296,6 @@ export default function Pessoas() {
             placeholder="Pesquisar por nome..."
             className="flex-grow px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-300"
           />
-          {/* <button
-            onClick={handleSearchConfirm}
-            className="p-2 text-white bg-purple-500 rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400"
-          >
-            <Search size={20} />
-          </button> */}
           <button
             onClick={handleSearchClear}
             className="p-2 text-white bg-gray-500 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400"
@@ -347,7 +351,7 @@ export default function Pessoas() {
                 onChange={handleInputChange}
                 className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
               >
-                <option value="">Selecione o sexo</option>
+                <option value="">Selecione</option>
                 <option value="M">Masculino</option>
                 <option value="F">Feminino</option>
               </select>
@@ -383,72 +387,73 @@ export default function Pessoas() {
                 onChange={handleInputChange}
                 className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
               >
-                <option value="">Selecione a cidade</option>
+                <option value="">Selecione uma cidade</option>
                 {cidades.map(cidade => (
                   <option key={cidade.id} value={cidade.id}>{cidade.nome}</option>
                 ))}
               </select>
             </div>
           </div>
-          <div className="flex justify-end mt-6 space-x-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              {editingId ? 'Gravar Alterações' : 'Incluir'}
-            </button>
+
+          <div className="flex justify-end mt-6">
             <button
               type="button"
               onClick={handleCancel}
-              className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="px-6 py-2 leading-5 text-white transition-colors duration-200 transform bg-gray-500 rounded-md hover:bg-gray-700 focus:outline-none focus:bg-gray-600"
             >
-              {editingId ? 'Cancelar Alterações' : 'Cancelar Inclusão'}
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2 leading-5 text-white transition-colors duration-200 transform bg-blue-500 rounded-md hover:bg-blue-700 focus:outline-none focus:bg-blue-600 ml-4"
+            >
+              {editingId ? 'Atualizar' : 'Salvar'}
             </button>
           </div>
         </form>
       )}
 
       {loading ? (
-        <p className="mt-6 text-gray-600 dark:text-gray-300">Carregando...</p>
+        <p>Carregando...</p>
       ) : (
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-              <tr>
-                <th scope="col" className="px-0 py-3"></th>
-                <th scope="col" className="px-1 py-3">Nome</th>
-                <th scope="col" className="px-1 py-3">Telefone</th>
-                <th scope="col" className="px-1 py-3">Idade</th>
-                <th scope="col" className="px-1 py-3">Sexo</th>
-                <th scope="col" className="px-1 py-3">Endereço</th>
-                <th scope="col" className="px-1 py-3">Bairro</th>
-                <th scope="col" className="px-1 py-3">Cidade</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPessoas.map((pessoa) => (
-                <tr key={pessoa.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                  <td className="px-0 py-4 text-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(pessoa.id)}
-                      onChange={() => handleCheckboxChange(pessoa.id)}
-                      className="form-checkbox h-5 w-5 text-blue-600 rounded"
-                    />
-                  </td>
-                  <td className="px-1 py-4">{pessoa.nome.toUpperCase()}</td>
-                  <td className="px-1 py-4">{pessoa.telefone}</td>
-                  <td className="px-1 py-4">{pessoa.idade}</td>
-                  <td className="px-1 py-4">{pessoa.sexo}</td>
-                  <td className="px-1 py-4">{pessoa.endereco}</td>
-                  <td className="px-1 py-4">{pessoa.bairro}</td>
-                  <td className="px-1 py-4">{cidades.find(c => c.id === pessoa.cidade_id)?.nome}</td>
+        !showForm && (
+          <div className="mt-6 overflow-x-auto">
+            <table className="w-full whitespace-nowrap">
+              <thead>
+                <tr className="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
+                  <th className="px-4 py-3"></th>
+                  <th className="px-4 py-3">Nome</th>
+                  <th className="px-4 py-3">Telefone</th>
+                  <th className="px-4 py-3">Idade</th>
+                  <th className="px-4 py-3">Sexo</th>
+                  <th className="px-4 py-3">Endereço</th>
+                  <th className="px-4 py-3">Bairro</th>
+                  <th className="px-4 py-3">Cidade</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
+                {filteredPessoas.map(pessoa => (
+                  <tr key={pessoa.id} className="text-gray-700 dark:text-gray-400">
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(pessoa.id)}
+                        onChange={() => handleCheckboxChange(pessoa.id)}
+                      />
+                    </td>
+                    <td className="px-4 py-3">{pessoa.nome}</td>
+                    <td className="px-4 py-3">{pessoa.telefone}</td>
+                    <td className="px-4 py-3">{pessoa.idade}</td>
+                    <td className="px-4 py-3">{pessoa.sexo}</td>
+                    <td className="px-4 py-3">{pessoa.endereco}</td>
+                    <td className="px-4 py-3">{pessoa.bairro}</td>
+                    <td className="px-4 py-3">{cidades.find(c => c.id === pessoa.cidade_id)?.nome}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
       )}
     </section>
   );

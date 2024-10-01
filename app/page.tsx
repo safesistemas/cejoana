@@ -23,7 +23,7 @@ export default async function Home() {
         <div className="flex flex-col justify-center items-center flex-grow">
           <div className="grid grid-cols-1 gap-4 w-64 text-center">
             <Link href="/cadastro-pessoa">
-              <button className="button dark:bg-gray-700 dark:text-white w-full">Pessoas</button>
+              <button className="button dark:bg-gray-700 dark:text-white w-full">Pessoasadfs</button>
             </Link>
             <Link href="/cadastro-atendente">
               <button className="button dark:bg-gray-700 dark:text-white w-full">Atendentes</button>
