@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import Link from 'next/link';
-import { PlusCircle, Edit2, Trash2 } from 'lucide-react';
+import { PlusCircle, Edit2, Trash2, Search, X } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
 interface Pessoa {
@@ -26,11 +26,14 @@ interface Cidade {
 
 export default function Pessoas() {
   const [pessoas, setPessoas] = useState<Pessoa[]>([]);
+  const [filteredPessoas, setFilteredPessoas] = useState<Pessoa[]>([]);
   const [cidades, setCidades] = useState<Cidade[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState<Omit<Pessoa, 'id'>>({
     nome: '',
     telefone: '',
@@ -52,6 +55,7 @@ export default function Pessoas() {
 
       if (error) throw error;
       setPessoas(data || []);
+      setFilteredPessoas(data || []);
     } catch (error) {
       console.error('Erro ao buscar pessoas:', error);
       toast.error('Erro ao carregar pessoas!');
@@ -80,10 +84,12 @@ export default function Pessoas() {
     fetchCidades();
   }, [fetchPessoas, fetchCidades]);
 
-  // Adicionado para debug
   useEffect(() => {
-    console.log('showForm changed:', showForm);
-  }, [showForm]);
+    const filtered = pessoas.filter(pessoa =>
+      pessoa.nome.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredPessoas(filtered);
+  }, [searchTerm, pessoas]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -165,8 +171,8 @@ export default function Pessoas() {
 
   function handleCancel() {
     resetForm();
-    setShowForm(false); // Esconde o formulário
-    setEditingId(null); // Limpa o ID de edição
+    setShowForm(false);
+    setEditingId(null);
     toast(editingId ? 'Alterações canceladas' : 'Inclusão cancelada', {
       icon: '🔔',
       style: {
@@ -177,7 +183,6 @@ export default function Pessoas() {
     });
   }
 
-  // Modificada para não esconder o formulário
   function resetForm() {
     setFormData({
       nome: '',
@@ -188,7 +193,6 @@ export default function Pessoas() {
       bairro: '',
       cidade_id: null
     });
-    // Não alteramos showForm aqui
   }
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
@@ -207,6 +211,24 @@ export default function Pessoas() {
     setSelectedIds(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
+  }
+
+  function handleSearchClick() {
+    setShowSearch(!showSearch);
+    if (!showSearch) {
+      setSearchTerm('');
+    }
+  }
+
+  function handleSearchConfirm() {
+    toast.success('Pesquisa realizada!');
+  }
+
+  function handleSearchClear() {
+    setSearchTerm('');
+    setShowSearch(false);
+    setFilteredPessoas(pessoas);
+    toast.success('Pesquisa limpa!');
   }
 
   return (
@@ -244,8 +266,40 @@ export default function Pessoas() {
             <Trash2 size={24} />
             <p className="ml-2 hidden md:block">Excluir</p>
           </button>
+          <button
+            onClick={handleSearchClick}
+            className="flex items-center justify-end p-2 text-white bg-purple-500 rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            title="Pesquisar"
+          >
+            <Search size={24} />
+            <p className="ml-2 hidden md:block">Pesquisar</p>
+          </button>
         </div>
       </div>
+
+      {showSearch && (
+        <div className="flex items-center space-x-2 mb-4">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Pesquisar por nome..."
+            className="flex-grow px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-300"
+          />
+          {/* <button
+            onClick={handleSearchConfirm}
+            className="p-2 text-white bg-purple-500 rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          >
+            <Search size={20} />
+          </button> */}
+          <button
+            onClick={handleSearchClear}
+            className="p-2 text-white bg-gray-500 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400"
+          >
+            <X size={20} />
+          </button>
+        </div>
+      )}
 
       {showForm && (
         <form onSubmit={handleSubmit} className="mt-6">
@@ -373,7 +427,7 @@ export default function Pessoas() {
               </tr>
             </thead>
             <tbody>
-              {pessoas.map((pessoa) => (
+              {filteredPessoas.map((pessoa) => (
                 <tr key={pessoa.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                   <td className="px-0 py-4 text-center">
                     <input
@@ -398,4 +452,4 @@ export default function Pessoas() {
       )}
     </section>
   );
-}              
+}
