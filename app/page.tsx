@@ -10,20 +10,21 @@ export default async function Home() {
 
   return (
     <div className="container mx-auto px-4 h-screen flex flex-col justify-between">
-      <div className="flex justify-between items-center py-4">
-        <h1 className="text-3xl font-bold text-gray-700 capitalize dark:text-white mx-auto flex-grow text-center">
+      <div className="relative py-4">
+        <h1 className="text-3xl font-bold text-gray-700 capitalize dark:text-white text-center">
           CE Joana D&apos;Arc
         </h1>
-        <div className="ml-auto">
+        <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
           <ThemeToggle />
         </div>
       </div>
-  
+
+
       {session ? (
         <div className="flex flex-col justify-center items-center flex-grow">
           <div className="grid grid-cols-1 gap-4 w-64 text-center">
             <Link href="/cadastro-pessoa">
-              <button className="button dark:bg-gray-700 dark:text-white w-full">Pessoasadfs</button>
+              <button className="button dark:bg-gray-700 dark:text-white w-full">Pessoas</button>
             </Link>
             <Link href="/cadastro-atendente">
               <button className="button dark:bg-gray-700 dark:text-white w-full">Atendentes</button>
@@ -59,5 +60,5 @@ export default async function Home() {
       )}
     </div>
   );
-  
+
 }

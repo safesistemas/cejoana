@@ -1,3 +1,4 @@
+
 import { createClient } from '@/utils/supabase/server'
 import Pessoas from '@/components/Pessoas'
 
