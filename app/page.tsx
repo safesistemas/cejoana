@@ -12,7 +12,7 @@ export default async function Home() {
     <div className="container mx-auto px-4 h-screen flex flex-col justify-between">
       <div className="relative py-4">
         <h1 className="text-3xl font-bold text-gray-700 capitalize dark:text-white text-center">
-          CE. Joana D&apos;Arc
+          C.E. Joana D&apos;Arc
         </h1>
         <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
           <ThemeToggle />
