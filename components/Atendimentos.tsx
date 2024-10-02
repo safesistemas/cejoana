@@ -2,12 +2,18 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import Link from 'next/link';
-import { PlusCircle, Edit2, Trash2 } from 'lucide-react';
+import { PlusCircle, Edit2, Trash2, Search } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
+function normalizeString(str: string): string {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
 
 interface Atendimento {
   id: number;
@@ -36,6 +42,7 @@ interface TipoAtendimento {
 
 export default function Atendimentos() {
   const [atendimentos, setAtendimentos] = useState<Atendimento[]>([]);
+  const [filteredAtendimentos, setFilteredAtendimentos] = useState<Atendimento[]>([]);
   const [pessoas, setPessoas] = useState<Pessoa[]>([]);
   const [atendentes, setAtendentes] = useState<Atendente[]>([]);
   const [tiposAtendimento, setTiposAtendimento] = useState<TipoAtendimento[]>([]);
@@ -43,6 +50,8 @@ export default function Atendimentos() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState<Omit<Atendimento, 'id'>>({
     pessoa_id: 0,
     atendente_id: 0,
@@ -52,6 +61,7 @@ export default function Atendimentos() {
     observacao: ''
   });
   const supabase = createClient();
+  const listRef = useRef<HTMLDivElement>(null);
 
   function formatDateToLocal(dateString: string) {
     const date = new Date(dateString);
@@ -73,6 +83,7 @@ export default function Atendimentos() {
 
       if (error) throw error;
       setAtendimentos(data || []);
+      setFilteredAtendimentos(data || []);
     } catch (error) {
       console.error('Erro ao buscar atendimentos:', error);
       toast.error('Erro ao carregar atendimentos!');
@@ -106,6 +117,17 @@ export default function Atendimentos() {
     fetchTiposAtendimento();
   }, [fetchAtendimentos, fetchPessoas, fetchAtendentes, fetchTiposAtendimento]);
 
+  useEffect(() => {
+    const normalizedSearchTerm = normalizeString(searchTerm);
+    const filtered = atendimentos.filter(atendimento =>
+      normalizeString(pessoas.find(p => p.id === atendimento.pessoa_id)?.nome || '').includes(normalizedSearchTerm)
+    );
+    setFilteredAtendimentos(filtered);
+    if (listRef.current) {
+      listRef.current.scrollTop = 0;
+    }
+  }, [searchTerm, atendimentos, pessoas]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -129,6 +151,7 @@ export default function Atendimentos() {
         toast.success('Atendimento adicionado com sucesso!');
       }
       resetForm();
+      setShowForm(false);
       fetchAtendimentos();
     } catch (error) {
       console.error('Erro ao salvar atendimento:', error);
@@ -163,12 +186,16 @@ export default function Atendimentos() {
     }
   }
 
-  function handleEdit() {
-    if (selectedIds.length !== 1) {
+  function handleEdit(id?: number) {
+    if (id) {
+      setSelectedIds([id]);
+    }
+    if (selectedIds.length !== 1 && !id) {
       toast.error('Selecione exatamente um atendimento para editar.');
       return;
     }
-    const atendimento = atendimentos.find(a => a.id === selectedIds[0]);
+    const atendimentoId = id || selectedIds[0];
+    const atendimento = atendimentos.find(a => a.id === atendimentoId);
     if (atendimento) {
       setEditingId(atendimento.id);
       setFormData({
@@ -185,19 +212,27 @@ export default function Atendimentos() {
 
   function handleCancel() {
     resetForm();
+    setShowForm(false);
+    setEditingId(null);
+    toast(editingId ? 'Alterações canceladas' : 'Inclusão cancelada', {
+      icon: '🔔',
+      style: {
+        borderRadius: '10px',
+        background: '#3498db',
+        color: '#fff',
+      },
+    });
   }
 
   function resetForm() {
-    setEditingId(null);
     setFormData({
       pessoa_id: 0,
       atendente_id: 0,
-      data_atendimento: new Date().toISOString().slice(0, 16), // Formato YYYY-MM-DDTHH:mm
+      data_atendimento: new Date().toISOString().slice(0, 16),
       tipo_atendimento_id: 0,
       orientacao: '',
       observacao: ''
     });
-    setShowForm(false);
   }
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
@@ -209,197 +244,237 @@ export default function Atendimentos() {
   }
 
   function handleCheckboxChange(id: number) {
-    setSelectedIds(prev => 
+    setSelectedIds(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   }
 
-  function handleIncluir() {
-    setEditingId(null);
-    resetForm();
-    setShowForm(true);
+  function handleSearchClick() {
+    setShowSearch(!showSearch);
+    if (!showSearch) {
+      setSearchTerm('');
+    }
+    if (listRef.current) {
+      listRef.current.scrollTop = 0;
+    }
   }
 
   return (
-    <section className="max-w-4xl p-6 mx-auto bg-white rounded-md shadow-md dark:bg-gray-800">
-      <Toaster position="top-right" />
-      <div className="flex justify-between items-center mb-6">
-        <Link href="/">
-          <button className="px-4 py-2 text-sm text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
-            Voltar
-          </button>
-        </Link>
-        <h2 className="text-lg font-semibold text-gray-700 capitalize dark:text-white">Atendimentos</h2>
-        <div className="flex space-x-2">
-          <button
-            onClick={handleIncluir}
-            className="flex items-center justify-end p-2 text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
-            title="Incluir"
-          >
-            <PlusCircle size={24} />
-            <p className="ml-2 hidden md:block">Incluir</p>
-          </button>
-          <button
-            onClick={handleEdit}
-            className="flex items-center justify-end p-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            title="Editar"
-          >
-            <Edit2 size={24} />
-            <p className="ml-2 hidden md:block">Editar</p>
-          </button>
-          <button
-            onClick={handleDelete}
-            className="flex items-center justify-end p-2 text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
-            title="Excluir"
-          >
-            <Trash2 size={24} />
-            <p className="ml-2 hidden md:block">Excluir</p>
-          </button>
-        </div>
-      </div>
-
-      {showForm && (
-        <form onSubmit={handleSubmit} className="mt-6">
-          <div className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
-            <div>
-              <label className="text-gray-700 dark:text-gray-200" htmlFor="pessoa_id">Pessoa</label>
-              <select
-                id="pessoa_id"
-                name="pessoa_id"
-                value={formData.pessoa_id}
-                onChange={handleInputChange}
-                required
-                className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
-              >
-                <option value="">Selecione a pessoa</option>
-                {pessoas.map(pessoa => (
-                  <option key={pessoa.id} value={pessoa.id}>{pessoa.nome}</option>
-                ))}
-              </select>
+    <div className="flex flex-col h-screen">
+      <header className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-md z-10">
+        <div className="max-w-4xl mx-auto p-2">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-2">
+            <div className="flex items-center justify-between w-full sm:w-auto mb-2 sm:mb-0">
+              <Link href="/">
+                <button className="px-4 py-2 h-10 text-sm text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                  Voltar
+                </button>
+              </Link>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white mx-auto pl-4 pr-4 text-center">Atendimentos</h2>
             </div>
-            <div>
-              <label className="text-gray-700 dark:text-gray-200" htmlFor="atendente_id">Atendente</label>
-              <select
-                id="atendente_id"
-                name="atendente_id"
-                value={formData.atendente_id}
-                onChange={handleInputChange}
-                required
-                className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
+            <div className="flex flex-wrap justify-center sm:justify-end space-x-2 space-y-2 sm:space-y-0">
+              <button
+                onClick={() => { setShowForm(true); setEditingId(null); resetForm(); }}
+                className="flex items-center justify-center p-2 h-10 text-white bg-green-500 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
+                title="Incluir"
               >
-                <option value="">Selecione o atendente</option>
-                {atendentes.map(atendente => (
-                  <option key={atendente.id} value={atendente.id}>{atendente.nome}</option>
-                ))}
-              </select>
+                <PlusCircle size={20} />
+                <p className="ml-2">Incluir</p>
+              </button>
+              <button
+                onClick={() => handleEdit()}
+                className="flex items-center justify-center p-2 h-10 text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                title="Editar"
+              >
+                <Edit2 size={20} />
+                <p className="ml-2">Editar</p>
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex items-center justify-center p-2 h-10 text-white bg-red-500 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
+                title="Excluir"
+              >
+                <Trash2 size={20} />
+                <p className="ml-2">Excluir</p>
+              </button>
+              <button
+                onClick={handleSearchClick}
+                className="flex items-center justify-center p-2 h-10 text-white bg-purple-500 rounded-md hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                title="Pesquisar"
+              >
+                <Search size={20} />
+                <p className="ml-2 hidden md:block">Pesquisar</p>
+              </button>
             </div>
-            <div>
-              <label className="text-gray-700 dark:text-gray-200" htmlFor="data_atendimento">Data do Atendimento</label>
+          </div>
+          {showSearch && (
+            <div className="flex items-center space-x-2 mt-1 mb-1">
               <input
-                id="data_atendimento"
-                type="datetime-local"
-                name="data_atendimento"
-                value={formData.data_atendimento}
-                onChange={handleInputChange}
-                required
-                className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Pesquisar por nome da pessoa..."
+                className="flex-grow px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-purple-300"
               />
             </div>
-            <div>
-              <label className="text-gray-700 dark:text-gray-200" htmlFor="tipo_atendimento_id">Tipo de Atendimento</label>
-              <select
-                id="tipo_atendimento_id"
-                name="tipo_atendimento_id"
-                value={formData.tipo_atendimento_id}
-                onChange={handleInputChange}
-                required
-                className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
-              >
-                <option value="">Selecione o tipo de atendimento</option>
-                {tiposAtendimento.map(tipo => (
-                  <option key={tipo.id} value={tipo.id}>{tipo.descricao_atendimento}</option>
-                ))}
-              </select>
-            </div>
-            <div className="sm:col-span-2">
-              <label className="text-gray-700 dark:text-gray-200" htmlFor="orientacao">Orientação</label>
-              <textarea
-                id="orientacao"
-                name="orientacao"
-                value={formData.orientacao || ''}
-                onChange={handleInputChange}
-                className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
-              />
-            </div>
-            <div className="sm:col-span-2">
-            <label className="text-gray-700 dark:text-gray-200" htmlFor="observacao">Observação</label>
-              <textarea
-                id="observacao"
-                name="observacao"
-                value={formData.observacao || ''}
-                onChange={handleInputChange}
-                className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
-              />
-            </div>
-          </div>
-          <div className="flex justify-end mt-6 space-x-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              {editingId ? 'Gravar Alterações' : 'Incluir'}
-            </button>
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="px-8 py-2.5 leading-5 text-white transition-colors duration-300 transform bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      )}
-
-      {loading ? (
-        <p className="mt-6 text-gray-600 dark:text-gray-300">Carregando...</p>
-      ) : (
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-              <tr>
-                <th scope="col" className="px-0 py-3"></th>
-                <th scope="col" className="px-1 py-3">Pessoa</th>
-                <th scope="col" className="px-1 py-3">Atendente</th>
-                <th scope="col" className="px-1 py-3">Data do Atendimento</th>
-                <th scope="col" className="px-1 py-3">Tipo de Atendimento</th>
-                <th scope="col" className="px-1 py-3">Orientação</th>
-                <th scope="col" className="px-1 py-3">Observação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {atendimentos.map((atendimento) => (
-                <tr key={atendimento.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                  <td className="px-0 py-4 text-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(atendimento.id)}
-                      onChange={() => handleCheckboxChange(atendimento.id)}
-                      className="form-checkbox h-5 w-5 text-blue-600 rounded"
-                    />
-                  </td>
-                  <td className="px-1 py-4">{pessoas.find(p => p.id === atendimento.pessoa_id)?.nome}</td>
-                  <td className="px-1 py-4">{atendentes.find(a => a.id === atendimento.atendente_id)?.nome}</td>
-                  <td className="px-1 py-4">{formatDateToLocal(atendimento.data_atendimento)}</td>                  
-                  <td className="px-1 py-4">{tiposAtendimento.find(t => t.id === atendimento.tipo_atendimento_id)?.descricao_atendimento}</td>
-                  <td className="px-1 py-4">{atendimento.orientacao}</td>
-                  <td className="px-1 py-4">{atendimento.observacao}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          )}
         </div>
-      )}
-    </section>
+      </header>
+      <main className={`flex-grow ${showSearch ? 'mt-32 sm:mt-16' : 'mt-20 sm:mt-5'} p-6 bg-white rounded-md shadow-md dark:bg-gray-800 overflow-y-auto transition-all duration-300`} ref={listRef}>
+        <Toaster position="bottom-center" />
+
+        {showForm && (
+          <form onSubmit={handleSubmit} className="mt-6">
+            <div className="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
+              <div>
+                <label className="text-gray-700 dark:text-gray-200" htmlFor="pessoa_id">Pessoa</label>
+                <select
+                  id="pessoa_id"
+                  name="pessoa_id"
+                  value={formData.pessoa_id}
+                  onChange={handleInputChange}
+                  required
+                  className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
+                >
+                  <option value="">Selecione a pessoa</option>
+                  {pessoas.map(pessoa => (
+                    <option key={pessoa.id} value={pessoa.id}>{pessoa.nome}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-gray-700 dark:text-gray-200" htmlFor="atendente_id">Atendente</label>
+                <select
+                  id="atendente_id"
+                  name="atendente_id"
+                  value={formData.atendente_id}
+                  onChange={handleInputChange}
+                  required
+                  className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
+                >
+                  <option value="">Selecione o atendente</option>
+                  {atendentes.map(atendente => (
+                    <option key={atendente.id} value={atendente.id}>{atendente.nome}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-gray-700 dark:text-gray-200" htmlFor="data_atendimento">Data do Atendimento</label>
+                <input
+                  id="data_atendimento"
+                  type="datetime-local"
+                  name="data_atendimento"
+                  value={formData.data_atendimento}
+                  onChange={handleInputChange}
+                  required
+                  className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
+                />
+              </div>
+              <div>
+                <label className="text-gray-700 dark:text-gray-200" htmlFor="tipo_atendimento_id">Tipo de Atendimento</label>
+                <select
+                  id="tipo_atendimento_id"
+                  name="tipo_atendimento_id"
+                  value={formData.tipo_atendimento_id}
+                  onChange={handleInputChange}
+                  required
+                  className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
+                >
+                  <option value="">Selecione o tipo de atendimento</option>
+                  {tiposAtendimento.map(tipo => (
+                    <option key={tipo.id} value={tipo.id}>{tipo.descricao_atendimento}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="text-gray-700 dark:text-gray-200" htmlFor="orientacao">Orientação</label>
+                <textarea
+                  id="orientacao"
+                  name="orientacao"
+                  value={formData.orientacao || ''}
+                  onChange={handleInputChange}
+                  className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="text-gray-700 dark:text-gray-200" htmlFor="observacao">Observação</label>
+                <textarea
+                  id="observacao"
+                  name="observacao"
+                  value={formData.observacao || ''}
+                  onChange={handleInputChange}
+                  className="block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end mt-6">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-6 py-2 leading-5 text-white transition-colors duration-200 transform bg-gray-500 rounded-md hover:bg-gray-700 focus:outline-none focus:bg-gray-600"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 leading-5 text-white transition-colors duration-200 transform bg-blue-500 rounded-md hover:bg-blue-700 focus:outline-none focus:bg-blue-600 ml-4"
+              >
+                {editingId ? 'Atualizar' : 'Salvar'}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {loading ? (
+          <p>Carregando...</p>
+        ) : (
+          !showForm && (
+            <div className="mt-6 overflow-x-auto">
+              <table className="w-full whitespace-nowrap">
+                <thead>
+                  <tr className="text-xs font-semibold tracking-wide text-left text-gray-800 uppercase bg-gray-400 dark:bg-gray-600 dark:text-gray-400">
+                    <th className="px-4 py-3"></th>
+                    <th className="px-4 py-3">Pessoa</th>
+                    <th className="px-4 py-3">Atendente</th>
+                    <th className="px-4 py-3">Data do Atendimento</th>
+                    <th className="px-4 py-3">Tipo de Atendimento</th>
+                    <th className="px-4 py-3">Orientação</th>
+                    <th className="px-4 py-3">Observação</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
+                  {filteredAtendimentos.map((atendimento, index) => (
+                    <tr
+                      key={atendimento.id}
+                      className={`text-gray-700 dark:text-gray-400 ${index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'} hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer`}
+                      onClick={(e) => {
+                        const target = e.target as HTMLElement;
+                        if (target.tagName.toLowerCase() !== 'input' || target.getAttribute('type') !== 'checkbox') {
+                          handleEdit(atendimento.id);
+                        }
+                      }}
+                    >
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(atendimento.id)}
+                          onChange={() => handleCheckboxChange(atendimento.id)}
+                        />
+                      </td>
+                      <td className="px-4 py-3">{pessoas.find(p => p.id === atendimento.pessoa_id)?.nome}</td>
+                      <td className="px-4 py-3">{atendentes.find(a => a.id === atendimento.atendente_id)?.nome}</td>
+                      <td className="px-4 py-3">{formatDateToLocal(atendimento.data_atendimento)}</td>
+                      <td className="px-4 py-3">{tiposAtendimento.find(t => t.id === atendimento.tipo_atendimento_id)?.descricao_atendimento}</td>
+                      <td className="px-4 py-3">{atendimento.orientacao}</td>
+                      <td className="px-4 py-3">{atendimento.observacao}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        )}
+      </main>
+    </div>
   );
-}              
+}
