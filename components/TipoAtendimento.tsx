@@ -212,8 +212,13 @@ export default function TipoAtendimento() {
               </tr>
             </thead>
             <tbody>
-              {tiposAtendimento.map((tipo) => (
-                <tr key={tipo.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+              {tiposAtendimento.map((tipo, index) => (
+                <tr 
+                  key={tipo.id} 
+                  className={`${
+                    index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                  } border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700`}
+                >
                   <td className="px-0 py-4 text-center">
                     <input
                       type="checkbox"

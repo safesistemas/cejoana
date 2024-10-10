@@ -434,12 +434,10 @@ export default function Atendimentos() {
                 <thead>
                   <tr className="text-xs font-semibold tracking-wide text-left text-gray-800 uppercase bg-gray-400 dark:bg-gray-600 dark:text-gray-400">
                     <th className="px-4 py-3"></th>
+                    <th className="px-4 py-3">Data</th>
                     <th className="px-4 py-3">Pessoa</th>
                     <th className="px-4 py-3">Atendente</th>
-                    <th className="px-4 py-3">Data do Atendimento</th>
-                    <th className="px-4 py-3">Tipo de Atendimento</th>
-                    <th className="px-4 py-3">Orientação</th>
-                    <th className="px-4 py-3">Observação</th>
+                    <th className="px-4 py-3">Tipo</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
@@ -461,12 +459,10 @@ export default function Atendimentos() {
                           onChange={() => handleCheckboxChange(atendimento.id)}
                         />
                       </td>
+                      <td className="px-4 py-3">{formatDateToLocal(atendimento.data_atendimento)}</td>
                       <td className="px-4 py-3">{pessoas.find(p => p.id === atendimento.pessoa_id)?.nome}</td>
                       <td className="px-4 py-3">{atendentes.find(a => a.id === atendimento.atendente_id)?.nome}</td>
-                      <td className="px-4 py-3">{formatDateToLocal(atendimento.data_atendimento)}</td>
                       <td className="px-4 py-3">{tiposAtendimento.find(t => t.id === atendimento.tipo_atendimento_id)?.descricao_atendimento}</td>
-                      <td className="px-4 py-3">{atendimento.orientacao}</td>
-                      <td className="px-4 py-3">{atendimento.observacao}</td>
                     </tr>
                   ))}
                 </tbody>

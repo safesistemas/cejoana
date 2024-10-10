@@ -13,7 +13,7 @@ export default async function Home() {
       <div className="relative py-4">
         <h1 className="text-3xl font-bold text-gray-700 capitalize dark:text-white text-center">
           C.E. Joana D&apos;Arc
-          
+
         </h1>
         <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
           <ThemeToggle />
@@ -35,6 +35,9 @@ export default async function Home() {
             </Link>
             <Link href="/atendimento">
               <button className="button dark:bg-gray-700 dark:text-white w-full">Atendimentos</button>
+            </Link>
+            <Link href="/cidades">
+              <button className="button dark:bg-gray-700 dark:text-white w-full">Cidades</button>
             </Link>
             <Link href="/cadastro-usuario">
               <button className="button dark:bg-gray-700 dark:text-white w-full">Usuários</button>
